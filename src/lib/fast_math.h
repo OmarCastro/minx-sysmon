@@ -8,7 +8,8 @@
 #define unlikely(x)     (x)
 #endif
 
-template <typename T,unsigned S> inline unsigned arraysize(const T (&v)[S]){ return S; }
+template <typename T,unsigned S>
+constexpr unsigned arraysize(const T (&v)[S]){ return S; }
 
 template<int E, int N>
 struct t_pow {
@@ -28,8 +29,14 @@ unsigned long long quick_pow(unsigned int n) {
         t_pow<E, 6>::value, t_pow<E, 7>::value, t_pow<E, 8>::value,
         t_pow<E, 9>::value
     };
-    if(unlikely(n >= arraysize(lookupTable))){
-    	quick_pow<E>(n-9) * lookupTable[9];
-    }
-    return lookupTable[n];
+
+    unsigned long long acc = 1;
+    constexpr unsigned arrayEndPos = arraysize(lookupTable) - 1;
+    for(; unlikely(n > arrayEndPos); n -= arrayEndPos)
+            acc *=  lookupTable[arrayEndPos];
+    return acc*lookupTable[n];
+}
+
+inline bool isDigit(const char &v){
+        return (unsigned)(v-'0') <= ('9' - '0');
 }
