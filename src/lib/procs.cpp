@@ -3,13 +3,12 @@
 #include <dirent.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include "sys/sysinfo.h"
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include "procs.h"
 #include "inet.h"
-#include "outputbuffer.h"
+#include "systemstat.h"
 
 
 
@@ -27,20 +26,21 @@ static int file2str(const char *filename, char *ret, int cap) {
 }
 
 
-void calc_cpu_usage_pct(const char* const &parser, const struct dirent* const &dir){
+void calc_cpu_usage_pct(const FormatString &parser, const struct dirent* const &dir){
     const char *pid_s = dir->d_name;
     static char file_buffer[BUFFER_SIZE];
     static char stat_filepath[30];
+    static Literal strfs[] = {"/proc/","/stat"};
     const int pageSize = getpagesize();
     static pstat stat;
     int pid = atoi(pid_s);
     pcpuHist &pcpu = stats[pid];
-    mysprintf(stat_filepath, "/proc/%s/stat", pid_s);
+    Format::format(strfs, stat_filepath) % pid_s;
     if (unlikely(file2str(stat_filepath, file_buffer, BUFFER_SIZE) == -1)) return;
 
     char* S = strchr(file_buffer, '(') + 1;
     char* const tmp = strrchr(S, ')');
-    int num = tmp - S;
+    unsigned int num = tmp - S;
     if(unlikely(num >= sizeof(stat.name))) num = sizeof(stat.name) - 1;
     memcpy(stat.name, S, num);
     stat.name[num] = '\0';
@@ -59,7 +59,9 @@ void calc_cpu_usage_pct(const char* const &parser, const struct dirent* const &d
     const long unsigned int pid_diff = ttime_ticks - pcpu.ttime_ticks;
     pcpu.ttime_ticks = ttime_ticks;
     const float cpu_pct = pid_diff/F_INTERVAL;
-    OutputBuffer::appendf(parser, pid, stat.name, cpu_pct);
+    double mem_pct = (stat.rss*100)/(float)SysInfo.totalRam();
+
+    OutputBuffer::appendf(parser) % pid % stat.name % cpu_pct % mem_pct;
 }
 
 
@@ -68,20 +70,9 @@ void calc_cpu_usage_pct_all_procs(const Formatter &form)
   DIR *d = opendir("/proc");
   struct dirent *dir;
 
-  struct sysinfo memInfo;
-
-  sysinfo (&memInfo);
-  long long totalRam = memInfo.totalram * memInfo.mem_unit;
-  //Add other values in next statement to avoid int overflow on right hand side...
-  //totalVirtualMem += memInfo.totalswap;
-  //totalVirtualMem *= ;
-
 
   if (likely(d))
   {
-    OutputBuffer::clear();
-    OutputBuffer::appends(form.start);
-    //printIP();
     OutputBuffer::appends(form.process_start);
     while (likely(likely((dir = readdir(d)) != NULL) && likely(!isDigit(*dir->d_name)))){}
     calc_cpu_usage_pct(form.process_format,dir);
@@ -91,9 +82,7 @@ void calc_cpu_usage_pct_all_procs(const Formatter &form)
         calc_cpu_usage_pct(form.process_format,dir);
     }
     OutputBuffer::appends(form.process_end);
-    OutputBuffer::appends(form.end);
     closedir(d);
   }
-  OutputBuffer::print();
 }
 

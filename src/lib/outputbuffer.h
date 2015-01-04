@@ -5,11 +5,7 @@
 #include <string.h>
 #include "formatter.h"
 
-int mysprintf(char *str, const char *fmt, ...);
 char *ignoreReads(char *r, unsigned int times);
-char *itoa(int i, unsigned int *len);
-
-
 
 namespace OutputBuffer {
 
@@ -18,10 +14,16 @@ namespace OutputBuffer {
     extern char *pointer;
     inline void clear(){pointer = string;}
     inline int size(){return pointer - string;}
-    void appendf(const char *fmt, ...);
+    template<typename... Args>
+    inline Format appendf(const FormatString &format){
+        return Format(format, pointer);
+    }
+
     inline void appends(const char *s, unsigned int size){
-        memcpy(pointer, s, size);
-        pointer += size;
+        if(size > 0){
+            memcpy(pointer, s, size);
+            pointer += size;
+        }
     }
     inline void appends(const char *s){
         return appends(s,strlen(s));
