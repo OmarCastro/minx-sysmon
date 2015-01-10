@@ -6,6 +6,11 @@
 #include "lib/outputbuffer.h"
 #include "lib/systemstat.h"
 
+void init(const Formatter &form){
+    OutputBuffer::clear();
+    SysInfo.init();
+    calc_cpu_usage_pct_all_procs(form);
+}
 
 void nextFrame(const Formatter &form){
     OutputBuffer::clear();
@@ -15,23 +20,15 @@ void nextFrame(const Formatter &form){
     printIP(form);
     OutputBuffer::appends(form.separator);
     calc_cpu_usage_pct_all_procs(form);
-
-
     OutputBuffer::appends(form.end);
     OutputBuffer::print();
 }
 
-void makeJSONFrames(){
+void makeFrames(const Formatter &form){
+    init(form);
     while( 1 ){
-        nextFrame(Formatters::JSON);
         sleep( INTERVAL );
-    }
-}
-
-void makeMatrixFrames(){
-    while( 1 ){
-        nextFrame(Formatters::Matrix);
-        sleep( INTERVAL );
+        nextFrame(form);
     }
 }
 
@@ -47,12 +44,12 @@ int main( int argc, char* argv[] )
                    "  -m, --matrix  encode as a matrix (array of array) that can be decoded as json (default)\n");
             return 0;
         } else if (strcmp(argv[1], "-j") == 0 || strcmp(argv[1], "--json") == 0){
-            makeJSONFrames();
+            makeFrames(Formatters::JSON);
         } else if (strcmp(argv[1], "-m") == 0 || strcmp(argv[1], "--matrix") == 0){
-            makeMatrixFrames();
+            makeFrames(Formatters::Matrix);
         }
     } else {
-        makeJSONFrames();
+        makeFrames(Formatters::JSON);
     }
 
 } 

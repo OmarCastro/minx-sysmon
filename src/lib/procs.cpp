@@ -9,12 +9,13 @@
 #include "procs.h"
 #include "inet.h"
 #include "systemstat.h"
+#include "numeric_parser.h"
 
 
 
 static pcpuHist stats[MAX_PID_NUM + 1];
 
-static int file2str(const char *filename, char *ret, int cap) {
+int file2str(const char *filename, char *ret, int cap) {
     int fd, num_read;
     fd = open(filename, O_RDONLY, 0);
     if(unlikely(fd==-1)) return -1;
@@ -33,7 +34,8 @@ void calc_cpu_usage_pct(const FormatString &parser, const struct dirent* const &
     static Literal strfs[] = {"/proc/","/stat"};
     const int pageSize = getpagesize();
     static pstat stat;
-    int pid = atoi(pid_s);
+    long pid;
+    stoi((char *) pid_s, pid);
     pcpuHist &pcpu = stats[pid];
     Format::format(strfs, stat_filepath) % pid_s;
     if (unlikely(file2str(stat_filepath, file_buffer, BUFFER_SIZE) == -1)) return;
@@ -45,14 +47,15 @@ void calc_cpu_usage_pct(const FormatString &parser, const struct dirent* const &
     memcpy(stat.name, S, num);
     stat.name[num] = '\0';
     S = tmp + 2;
-    S = ignoreReads(S,11);               //#3 to #13
-    stat.utime_ticks = strtoul(S,&S,10); //#14 utime - CPU time spent in user code, measured in clock ticks
-    stat.stime_ticks = strtoul(S,&S,10); //#15 stime - CPU time spent in kernel code, measured in clock ticks
-    stat.cutime_ticks = strtol(S,&S,10); //#16 cutime - Waited-for children's CPU time spent in user code (in clock ticks)
-    stat.cstime_ticks = strtol(S,&S,10); //#17 cstime - Waited-for children's CPU time spent in kernel code (in clock ticks)
-    S = ignoreReads(S,5);				 //#18 to #23
-    stat.vsize = strtoul(S,&S,10);
-    stat.rss = strtoul(S,&S,10) * pageSize;
+    S = ignoreReads(S,11);          //#3 to #13
+    S = stoul(S,stat.utime_ticks);  //#14 utime - CPU time spent in user code, measured in clock ticks
+    S = stoul(S,stat.stime_ticks);  //#15 stime - CPU time spent in kernel code, measured in clock ticks
+    S = stoi(S,stat.cutime_ticks); //#16 cutime - Waited-for children's CPU time spent in user code (in clock ticks)
+    S = stoi(S,stat.cstime_ticks); //#17 cstime - Waited-for children's CPU time spent in kernel code (in clock ticks)
+    S = ignoreReads(S,5);			//#18 to #23
+    S = stoul(S,stat.vsize);
+    S = stoul(S,stat.rss);
+    stat.rss *= pageSize;
 
     //if(unlikely(get_usage_str(dir_name, stat) < 0)){ continue; }
     const decltype(pcpu.ttime_ticks) ttime_ticks = stat.utime_ticks + stat.stime_ticks;

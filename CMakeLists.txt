@@ -13,4 +13,5 @@ add_executable(sysmon
     src/lib/outputbuffer.cpp
     src/lib/formatter.cpp
     src/lib/systemstat.cpp
+    src/lib/numeric_parser.cpp
 )

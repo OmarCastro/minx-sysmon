@@ -38,5 +38,5 @@ unsigned long long quick_pow(unsigned int n) {
 }
 
 inline bool isDigit(const char &v){
-        return (unsigned)(v-'0') <= ('9' - '0');
+        return (v^'0') <= 9;
 }

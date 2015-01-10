@@ -12,31 +12,35 @@ void SystemStat::print(const Formatter &form) {
             % totalRam() % freeRam() % meminfo.procs;
 }
 
-
-
 void SystemStat::reload(){
     sysinfo(&meminfo);
 }
 
+char SystemStatBuffer[512];
+extern int file2str(const char *filename, char *ret, int cap);
+
 
 void SystemStat::init(){
-    FILE* file = fopen("/proc/stat", "r");
-    fscanf(file, "cpu %Ld %Ld %Ld %Ld", &lastTotalUser, &lastTotalUserLow,
-        &lastTotalSys, &lastTotalIdle);
-    fclose(file);
+    char *S = SystemStatBuffer;
+    file2str("/proc/stat", S, 512);
+    S = ignoreReads(S,1);
+    S = stoul(S,lastTotalUser);
+    S = stoul(S,lastTotalUserLow);
+    S = stoul(S,lastTotalSys);
+    S = stoul(S,lastTotalIdle);
 }
 
 double SystemStat::getCurrentValue(){
         double percent;
-        FILE* file;
-        unsigned long long totalUser, totalUserLow, totalSys, totalIdle, total;
+        uint64_t totalUser, totalUserLow, totalSys, totalIdle, total;
 
-
-        file = fopen("/proc/stat", "r");
-        fscanf(file, "cpu %Ld %Ld %Ld %Ld", &totalUser, &totalUserLow,
-            &totalSys, &totalIdle);
-        fclose(file);
-
+        char *S = SystemStatBuffer;
+        file2str("/proc/stat", S, 512);
+        S = ignoreReads(S,1);
+        S = stoul(S,totalUser);
+        S = stoul(S,totalUserLow);
+        S = stoul(S,totalSys);
+        S = stoul(S,totalIdle);
 
         if (totalUser < lastTotalUser || totalUserLow < lastTotalUserLow ||
             totalSys < lastTotalSys || totalIdle < lastTotalIdle){

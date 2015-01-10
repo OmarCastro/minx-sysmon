@@ -14,7 +14,7 @@ struct SystemStat
     unsigned long totalMem() const  {return (meminfo.totalram+meminfo.totalswap)*meminfo.mem_unit;}
     void print(const Formatter& form);
 
-    unsigned long long lastTotalUser, lastTotalUserLow, lastTotalSys, lastTotalIdle;
+    uint64_t lastTotalUser, lastTotalUserLow, lastTotalSys, lastTotalIdle;
     void init();
     double getCurrentValue();
 };

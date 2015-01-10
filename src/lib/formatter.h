@@ -4,12 +4,7 @@
 #include <string.h>
 #include <initializer_list>
 #include <type_traits>
-
-char *itoa(long i, unsigned int *len);
-char *ftoa(double f, unsigned int precision, unsigned int *len);
-char *ultoa(unsigned long i, unsigned int *len);
-
-
+#include "numeric_parser.h"
 struct Literal
 {
     template <std::size_t N> constexpr
