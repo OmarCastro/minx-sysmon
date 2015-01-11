@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title></title>
+</head>
+  <body ng-app="ngAppDemo" id="dark">
+    <div ng-controller="ngAppDemoController">
+    <div id="systat" style="float: left; width:33%">
+      <div ng-repeat="(key, value) in sysinfo.sys"> 
+        <span ng-bind-template="{{key}}: {{value}}"></span>
+      </div>
+    </div>
+    <div id="ipv4"  style="float: left; width:33%">
+      <div ng-repeat="(key, value) in sysinfo['IPv4 addrs']"> 
+        <span ng-bind-template="{{key}}: {{value}}"></span>
+      </div>
+    </div>
+
+    <div id="ipv6"  style="float: left; width:33%">
+      <div ng-repeat="(key, value) in sysinfo['IPv6 addrs']"> 
+        <span ng-bind-template="{{key}}: {{value}}"></span>
+      </div>
+    </div>
+    <div style="clear: both"></div>
+    <div>
+        Use mem <input type="checkbox" ng-model="usemem"><br/>
+        <table>
+          <thead>
+            <tr>
+              <th>PID</th><th>Name</th><th>CPU %</th><th>Memory %</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr ng-repeat="proc in sysinfo.procs | orderBy: (usemem ? '-residentMem':'-cpu') | limitTo:4">
+              <td ng-bind="proc.pid"></td>
+              <td ng-bind="proc.name"></td>
+              <td ng-bind="proc.cpu | number"></td>
+              <td ng-bind="proc.residentMem | number"></td>
+            </tr>
+          </tbody>
+        </table>
+</div><div>
+        Use mem <input type="checkbox" ng-model="gusemem"><br/>
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th><th>CPU %</th><th>Memory %</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr ng-repeat="proc in sysinfo.gprocs | orderBy: (gusemem ? '-residentMem':'-cpu') | limitTo:4">
+              <td ng-bind="proc.name"></td>
+              <td ng-bind="proc.cpu | number"></td>
+              <td ng-bind="proc.residentMem | number"></td>
+            </tr>
+          </tbody>
+        </table>
+        </div>
+
+  </div>
+    </body>
+
+  <script type="text/javascript" src="js/angular.min.js"></script>
+  <script type="text/javascript">
+    angular.module('ngAppDemo', []).controller('ngAppDemoController', function($scope) {
+
+    function groupProcs(sysinfo){
+        var procs = {}
+        sysinfo.procs.forEach(function(proc){
+            if(procs[proc.name]){
+                var val = procs[proc.name];
+                val.cpu += proc.cpu
+                val.residentMem += proc.residentMem
+
+            } else {
+                procs[proc.name] = {
+                    name: proc.name,
+                    cpu: proc.cpu,
+                    residentMem: proc.residentMem
+                }
+            }
+        })
+
+        var arr = []
+        for(var key in procs){
+            arr.push(procs[key])
+        }
+
+        sysinfo.gprocs = arr
+    }
+
+     var ws = new WebSocket('ws://localhost:8080/');
+      ws.onopen = function() {
+        console.log('CONNECT');
+      };
+      ws.onclose = function() {
+        console.log('DISCONNECT');
+      };
+      ws.onmessage = function(event) {
+        var data = JSON.parse(event.data);
+        groupProcs(data);
+        data.sys.uptime += " secs"
+        data.sys.cpu += " %"
+        data.sys.totalram = ~~(data.sys.totalram / (1024 * 1024) ) + " MB"
+        data.sys.freeram = ~~(data.sys.freeram / (1024 * 1024) ) + " MB"
+        $scope.sysinfo =  data;
+        $scope.$digest();
+      };
+    });
+
+    </script>
+</html>

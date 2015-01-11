@@ -1,4 +1,6 @@
-#include <math.h>
+#ifndef FAST_MATH_H
+#define FAST_MATH_H
+
 
 #ifdef __GNUC__
 #define likely(x)       __builtin_expect(!!(x), 1)
@@ -40,3 +42,5 @@ unsigned long long quick_pow(unsigned int n) {
 inline bool isDigit(const char &v){
         return (v^'0') <= 9;
 }
+
+#endif //FAST_MATH_H

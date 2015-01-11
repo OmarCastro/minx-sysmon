@@ -14,7 +14,6 @@ namespace OutputBuffer {
     extern char *pointer;
     inline void clear(){pointer = string;}
     inline int size(){return pointer - string;}
-    template<typename... Args>
     inline Format appendf(const FormatString &format){
         return Format(format, pointer);
     }

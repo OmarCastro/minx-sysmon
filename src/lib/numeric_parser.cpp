@@ -1,7 +1,6 @@
 #include "numeric_parser.h"
-#include "fast_math.h"
 
-#define NUM_DIGITS 64		/* enough for 64 bit integer and float */
+#define NUM_DIGITS 64		/* enough for 64 bit integer and floats */
 static char num_buf[NUM_DIGITS];  /* Room for INT_DIGITS digits, - and '\0' */
 static char* const num_buf_end =  num_buf + NUM_DIGITS - 1;
 
@@ -56,24 +55,12 @@ char *ftoa(double f, unsigned int precision, unsigned int *len){
 
 
 
-char* stoi(char* p, int64_t &i)
-{
-    while (*p == ' ') p++;
-    int s = 1;
-    if (*p == '-') {
-        s = -1; p++;
-    }
-    double acc = 0;
-    while (isDigit(*p))
-        acc = acc * 10 + *p++ - '0';
-    i = s * acc;
-    return p;
-}
+
 
 char* stoul(char * p, uint64_t &i)
 {
     while (*p == ' ') p++;
-    double acc = 0;
+    uint64_t acc = 0;
     while (isDigit(*p))
         acc = acc * 10 + *p++ - '0';
     i = acc;
