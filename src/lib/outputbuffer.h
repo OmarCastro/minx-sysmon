@@ -6,6 +6,13 @@
 #include "formatter.h"
 
 char *ignoreReads(char *r, unsigned int times);
+char *nextLine(char *r);
+inline bool strEquals(const char *r, Literal txt){
+    return memcmp(r,txt.mStr,txt.mLength) == 0;
+}
+inline bool startsWith(const char *r, Literal txt){
+    return memcmp(r,txt.mStr,txt.mLength-1) == 0;
+}
 
 namespace OutputBuffer {
 

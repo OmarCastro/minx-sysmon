@@ -36,16 +36,16 @@ int main( int argc, char* argv[] )
 {
 
     if(argc > 1){
-        if (strcmp(argv[1], "-h") == 0 || strcmp(argv[1], "--help") == 0){
+        if (strEquals(argv[1], "-h")|| strEquals(argv[1], "--help")){
             printf("usage: mytop [option]\n"
                    "OPTIONS:\n"
                    "  -h, --help    show this page\n"
                    "  -j, --json    encode to json object\n"
                    "  -m, --matrix  encode as a matrix (array of array) that can be decoded as json (default)\n");
             return 0;
-        } else if (strcmp(argv[1], "-j") == 0 || strcmp(argv[1], "--json") == 0){
+        } else if (strEquals(argv[1], "-j")|| strEquals(argv[1], "--json")){
             makeFrames(Formatters::JSON);
-        } else if (strcmp(argv[1], "-m") == 0 || strcmp(argv[1], "--matrix") == 0){
+        } else if (strEquals(argv[1], "-m")|| strEquals(argv[1], "--matrix")){
             makeFrames(Formatters::Matrix);
         }
     } else {

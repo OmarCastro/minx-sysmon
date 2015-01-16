@@ -17,3 +17,9 @@ char *ignoreReads(char *r, unsigned int times){
     }
     return r;
 }
+
+char *nextLine(char *r){
+    while(*r++ != '\n');
+    return r;
+}
+

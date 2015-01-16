@@ -3,6 +3,9 @@
 #include <sys/sysinfo.h>
 #include "outputbuffer.h"
 
+struct CpuInfo{
+   uint64_t lastTotalUser, lastTotalUserLow, lastTotalSys, lastTotalIdle;
+};
 
 struct SystemStat
 {  //struct sysinfo memInfo;
@@ -14,7 +17,7 @@ struct SystemStat
     unsigned long totalMem() const  {return (meminfo.totalram+meminfo.totalswap)*meminfo.mem_unit;}
     void print(const Formatter& form);
 
-    uint64_t lastTotalUser, lastTotalUserLow, lastTotalSys, lastTotalIdle;
+    CpuInfo cpus[20];
     void init();
     double getCurrentValue();
 };

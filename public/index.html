@@ -2,6 +2,14 @@
 <html>
 <head>
   <title></title>
+  <style type="text/css">
+
+  body{
+    background-color:#290029;
+    color: white
+  }
+
+  </style>
 </head>
   <body ng-app="ngAppDemo" id="dark">
     <div ng-controller="ngAppDemoController">
@@ -22,8 +30,11 @@
       </div>
     </div>
     <div style="clear: both"></div>
-    <div>
-        Use mem <input type="checkbox" ng-model="usemem"><br/>
+    <div>Hide tables <input type="checkbox" ng-model="hidetables"><br/></div>
+            
+
+    <div ng-if="!hidetables">
+        Sort memory <input type="checkbox" ng-model="usemem"><br/>
         <table>
           <thead>
             <tr>
@@ -39,8 +50,9 @@
             </tr>
           </tbody>
         </table>
-</div><div>
-        Use mem <input type="checkbox" ng-model="gusemem"><br/>
+    </div>
+    <div ng-if="!hidetables">
+        Sort memory <input type="checkbox" ng-model="gusemem"><br/>
         <table>
           <thead>
             <tr>
@@ -89,7 +101,16 @@
         sysinfo.gprocs = arr
     }
 
-     var ws = new WebSocket('ws://localhost:8080/');
+    function toTime(seconds){
+      var hours = ~~(seconds / 3600)
+      var restRecs = seconds % 3600
+      var minutes = ~~(restRecs / 60)
+      restRecs = restRecs % 60
+      return hours + ":" + minutes +":" + restRecs
+
+    }
+
+     var ws = new WebSocket('ws://' + document.domain + ':' + location.port);
       ws.onopen = function() {
         console.log('CONNECT');
       };
@@ -99,10 +120,11 @@
       ws.onmessage = function(event) {
         var data = JSON.parse(event.data);
         groupProcs(data);
-        data.sys.uptime += " secs"
-        data.sys.cpu += " %"
-        data.sys.totalram = ~~(data.sys.totalram / (1024 * 1024) ) + " MB"
-        data.sys.freeram = ~~(data.sys.freeram / (1024 * 1024) ) + " MB"
+        var sys = data.sys
+        sys.uptime = toTime(sys.uptime);
+        sys.cpu += " %"
+        sys.totalram = ~~(sys.totalram / (1024 * 1024) ) + " MB"
+        sys.freeram = ~~(sys.freeram / (1024 * 1024) ) + " MB"
         $scope.sysinfo =  data;
         $scope.$digest();
       };
